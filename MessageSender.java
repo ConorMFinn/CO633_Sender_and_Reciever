@@ -12,9 +12,6 @@ public class MessageSender
     // Minimum frame length
     private final int META_LEN = "[F~00~~00]".length();
 
-    // Maximum MTU
-    private final int MAX_MTU = 109;
-
     // Source of the messages.
     private final Scanner stdin;
 
@@ -25,7 +22,8 @@ public class MessageSender
      * not exceed the MTU)
      */
     public MessageSender(int mtu) {
-        this.mtu = Math.min(mtu, MAX_MTU);
+        // TODO: Check for too short MTU!
+        this.mtu = Math.min(mtu, 99 + META_LEN);
         this.stdin = new Scanner(System.in);
     }
 
@@ -38,14 +36,8 @@ public class MessageSender
         String message = stdin.nextLine();
         if(message != null) {
             ArrayList<String> segments;
-            if (message.length() + META_LEN > mtu) {
-                // TODO: If long, split into segments
-                segments = getSegments(message);
-            } else {
-                // Otherwise just need the one segment
-                segments = new ArrayList<>();
-                segments.add(message);
-            }
+            // If long, split into segments
+            segments = getSegments(message);
             for (int i = 0 ; i < segments.size() ; i++) {
                 // Determine frame type (D for data, F for final)
                 String frameType = i+1 == segments.size() ? "F" : "D";
@@ -59,8 +51,8 @@ public class MessageSender
                 }
                 // Add message
                 frame += "~" + segments.get(i) + "~";
-                // TODO: Generate checksum
-                frame += generateChecksum(frame);;
+                // Generate checksum
+                frame += generateChecksum(frame);
                 // Add final frame delimiter
                 frame += "]";
                 if (frame.length() > mtu) {
@@ -77,8 +69,20 @@ public class MessageSender
     }
 
     private ArrayList<String> getSegments(String message) {
+        final int messageLen = mtu - META_LEN;
         ArrayList<String> segments = new ArrayList<>();
-
+        // Do a check to see if it's short enough for one frame
+        if (message.length() < messageLen) {
+            segments.add(message);
+            return segments;
+        }
+        while(message.length() > messageLen) {
+            String next = message.substring(0, messageLen);
+            String remain = message.substring(messageLen);
+            segments.add(next);
+            message = remain;
+        }
+        segments.add(message);
         return segments;
     }
 
