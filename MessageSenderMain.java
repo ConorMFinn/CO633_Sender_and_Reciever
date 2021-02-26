@@ -17,6 +17,10 @@ public class MessageSenderMain
                     argnum++;
                     if(argnum < args.length) {
                         mtu = Integer.parseInt(args[argnum]);
+                        if (mtu <= MessageSender.META_LEN) {
+                            System.err.println("MTU too small: " + args[argnum]);
+                            argsOk = false;
+                        }
                         argnum++;
                     }
                     else {

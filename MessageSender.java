@@ -10,7 +10,7 @@ public class MessageSender
     private final int mtu;
 
     // Minimum frame length
-    private final int META_LEN = "[F~00~~00]".length();
+    public static final int META_LEN = "[F~00~~00]".length();
 
     // Source of the messages.
     private final Scanner stdin;
@@ -22,7 +22,6 @@ public class MessageSender
      * not exceed the MTU)
      */
     public MessageSender(int mtu) {
-        // TODO: Check for too short MTU!
         this.mtu = Math.min(mtu, 99 + META_LEN);
         this.stdin = new Scanner(System.in);
     }
