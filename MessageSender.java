@@ -68,6 +68,11 @@ public class MessageSender
 
     }
 
+    /**
+     * Split the message into segments based off the MTU
+     * @param message The message to split
+     * @return An arraylist of segments
+     */
     private ArrayList<String> getSegments(String message) {
         final int messageLen = mtu - META_LEN;
         ArrayList<String> segments = new ArrayList<>();
@@ -76,24 +81,36 @@ public class MessageSender
             segments.add(message);
             return segments;
         }
+
+        // Split message into segments
         while(message.length() > messageLen) {
             String next = message.substring(0, messageLen);
             String remain = message.substring(messageLen);
             segments.add(next);
             message = remain;
         }
+        // Add the last segment
         segments.add(message);
         return segments;
     }
 
+    /**
+     * Generate a checksum for a frame
+     * @param frameSection First part of the frame to generate the checksum
+     * @return 2 Character checksum using the last two hex characters of the
+     * arithmetic sum of the characters in the frame (excl start frame [)
+     */
     private String generateChecksum(String frameSection) {
         // Excludes starting frame delimiter
         frameSection = frameSection.substring(1);
         int sum = 0;
+        // Sum characters
         for(char c : frameSection.toCharArray()) {
             sum += c;
         }
+        // Convert to hexadecimal string
         String hex = Integer.toHexString(sum);
+        // Need exactly two characters
         if (hex.length() < 2) {
             return "0" + hex;
         } else {
