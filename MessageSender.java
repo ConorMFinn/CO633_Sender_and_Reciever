@@ -52,7 +52,7 @@ public class MessageSender
                 // Add basic frame info
                 String frame = "[" + frameType + "~";
                 // Add frame length
-                if (segments.get(i).length() > 10) {
+                if (segments.get(i).length() >= 10) {
                     frame += segments.get(i).length();
                 } else {
                     frame += "0" + segments.get(i).length();
@@ -60,10 +60,14 @@ public class MessageSender
                 // Add message
                 frame += "~" + segments.get(i) + "~";
                 // TODO: Generate checksum
-                frame += "00";
+                frame += generateChecksum(frame);;
                 // Add final frame delimiter
                 frame += "]";
-                System.out.println(frame);
+                if (frame.length() > mtu) {
+                    System.err.println("Frame too long.");
+                } else {
+                    System.out.println(frame);
+                }
             }
         }
         else {
@@ -76,6 +80,21 @@ public class MessageSender
         ArrayList<String> segments = new ArrayList<>();
 
         return segments;
+    }
+
+    private String generateChecksum(String frameSection) {
+        // Excludes starting frame delimiter
+        frameSection = frameSection.substring(1);
+        int sum = 0;
+        for(char c : frameSection.toCharArray()) {
+            sum += c;
+        }
+        String hex = Integer.toHexString(sum);
+        if (hex.length() < 2) {
+            return "0" + hex;
+        } else {
+            return hex.substring(hex.length()-2);
+        }
     }
 }
 
